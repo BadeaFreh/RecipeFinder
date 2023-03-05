@@ -7,6 +7,26 @@ const renderRecipes = function (recipesData) {
   $(".recipes-container").append(newHTML);
 }
 
+$("#paginate-btn").on("click", function () {
+  let pageNum = parseInt($("#page-num").val())
+  let limitNum = parseInt($("#limit-num").val())
+  $.ajax({
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json",
+      data: JSON.stringify({
+        pageNum,
+        limitNum
+      }),
+      url: "/recipes/paginate/",
+    })
+    .done(function (filteredRecipes) {
+      console.log(filteredRecipes);
+      renderRecipes(filteredRecipes)
+    })
+
+})
+
 $("#btn").on("click", function () {
   let input = $("#ingredients-input").val()
   let noDairyChecked = $("#nodairy")[0].checked
@@ -27,8 +47,6 @@ $("#btn").on("click", function () {
             url: "/recipes/",
           })
           .done(function (filteredRecipes) {
-            console.log("Response of update: ")
-            console.log(filteredRecipes)
             renderRecipes(filteredRecipes)
           })
       }

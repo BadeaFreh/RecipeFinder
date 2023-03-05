@@ -68,4 +68,32 @@ router.post("/recipes", function (req, res) {
   res.status(201).send(recipesData)
 })
 
+router.post("/recipes/paginate", (req, res) => {
+  const page = parseInt(req.body.pageNum);
+  const limit = parseInt(req.body.limitNum);
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const limitedResults = {};
+  if (endIndex < recipesData.results.length) {
+    limitedResults.nextPage = {
+      page: page + 1,
+      limit: limit
+    }
+  }
+
+  if (startIndex > 0) {
+    limitedResults.previousPage = {
+      page: page - 1,
+      limit: limit
+    }
+  }
+
+  recipesData.prevAndNextPages = limitedResults
+  recipesData.results = recipesData.results.slice(startIndex, endIndex) 
+  console.log("Done");
+  
+  res.status(201).send(recipesData)
+})
+
 module.exports = router
