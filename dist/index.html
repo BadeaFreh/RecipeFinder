@@ -8,41 +8,37 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Oleo+Script:wght@700&family=Quicksand:wght@300;500;700&display=swap"
         rel="stylesheet" />
-    <title>Recipes</title>
+    <title>RecipesFinder</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <div class="input-container">
         <input type="text" id="ingredients-input" placeholder="Enter an ingredient">
-        <button id="btn">Search</button>
-        
+        <button id="search-btn">Search</button>
     </div>
-    <div class="paginate-container">
-        <input type="text" id="page-num" placeholder="Enter Page">
-        <input type="text" id="limit-num" placeholder="Enter Limit">
-        <button id="paginate-btn">Get Page</button>
-    </div>
-    <form action="/recipes" method="post">
+    <div class="check-container">
         <div class="check-group">
-            <input class="form-radio" type="checkbox" name="noDairy" id="nodairy" />
-            <label for="nodairy">No Dairy</label>
+            <input class="form-radio" type="checkbox" id="isdairyfree" />
+            <label for="nodairy">Dairy Free</label>
         </div>
         <div class="check-group">
-            <input class="form-radio" type="checkbox" name="glutenFree" id="gluten-free" />
+            <input class="form-radio" type="checkbox" id="isglutenfree" />
             <label for="gluten-free">Gluten Free</label>
         </div>
-    </form>
-
+    </div>
+    <p class="page-number"></p>
+    <div class="navigation-btns">
+        <button class="previous-btn btn">Previous</button>
+        <button class="next-btn btn">Next</button>
+    </div>
     <div class="recipes-container"></div>
-
     <script id="recipes-template" type="text/x-handlebars-template">
-
         {{#each results}}
           <div class="recipe-container">
                 <a href=" {{ href }}" target="_blank">{{ title }}</a>
                 <div class="recipe-div">
-                    <button class="img-btn" >
+                    <!-- <button class="img-btn" > -->
                     <img  id="{{idMeal}}" class="picture" src="{{thumbnail}}" alt="recipe image">
                     </button>
                 </div>
@@ -59,6 +55,7 @@
 </body>
 <script src="./jquery/dist/jquery.js"></script>
 <script src="./handlebars/dist/handlebars.js"></script>
+<script src="renderer.js"></script>
 <script src="main.js"></script>
 
 </html>

@@ -1,99 +1,69 @@
-const express = require("express")
-const router = express.Router()
 const API_URL = "https://recipes-goodness-elevation.herokuapp.com/recipes/ingredient/"
+
+const express = require("express")
+const dairyIngredients = require('../data/dairy-ingredients')
+const glutenIngredients = require('../data/gluten-ingredients')
+
+const router = express.Router()
 const axios = require('axios')
+let recipes = []
 
-let recipesData = []
-let dairyIngredients = ["Double Cream", "Cheese", "Milk", "Butter", "Creme", "Ricotta", "Mozzarella", "Custard", "Cream Cheese"]
-let glutenIngredients = ["Flour", "Bread", "spaghetti", "Biscuits", "Beer"]
-
-const filterDiaryIngredients = function () {
+const filterRecipes = function (allergens) {
   let filteredRecipes = []
-  let recipes = recipesData.results
   for (let recipe of recipes) {
-
     let allPassed = recipe.ingredients.every(ingredient => {
-      return !dairyIngredients.includes(ingredient)
+      return !allergens.includes(ingredient)
     })
     if (allPassed) {
       filteredRecipes.push(recipe)
     }
   }
-  recipesData.results = filteredRecipes
-}
-
-const filterGlutinIngredients = function () {
-  let filteredRecipes = []
-  let recipes = recipesData.results
-  for (let recipe of recipes) {
-    let allPassed = recipe.ingredients.every(ingredient => {
-      return !glutenIngredients.includes(ingredient)
-    })
-    if (allPassed) {
-      filteredRecipes.push(recipe)
-    }
-  }
-  recipesData.results = filteredRecipes
+  recipes = filteredRecipes
 }
 
 const getRecipes = function (ingredient) {
-  return axios(API_URL + ingredient)
+  return axios.get(API_URL + ingredient)
 }
 
-router.get("/recipes/:ingredient", function (req, res) {
-  const ingredient = req.params.ingredient
-  getRecipes(ingredient)
-    .then(recipesResponse => {
-      let resultsLength = recipesResponse.data.results.length
-      recipesData = recipesResponse.data
-      if (resultsLength === 0) {
-        res.status(204).send([{
-          msg: "No recipes. Maybe try another ingredients?"
-        }])
-      } else {
-        res.status(200).send(recipesData)
-      }
-    })
-})
-
-router.post("/recipes", function (req, res) {
-  const noDairy = req.body.nodairy
-  const noGluten = req.body.nogluten
-  if (noDairy) {
-    filterDiaryIngredients()
+router.get("/recipes", (req, res) => {
+  const isDairyFree = JSON.parse(req.query.isdairyfree)
+  const isGlutenFree = JSON.parse(req.query.isglutenfree)
+  const page = parseInt(req.query.page)
+  const limit = parseInt(req.query.limit)
+  if (isDairyFree) {
+    filterRecipes(dairyIngredients)
   }
-  if (noGluten) {
-    filterGlutinIngredients()
+  if (isGlutenFree) {
+    filterRecipes(glutenIngredients)
   }
-  res.status(201).send(recipesData)
-})
+  const startIndex = (page - 1) * limit
+  const endIndex = page * limit
 
-router.post("/recipes/paginate", (req, res) => {
-  const page = parseInt(req.body.pageNum);
-  const limit = parseInt(req.body.limitNum);
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-
-  const limitedResults = {};
-  if (endIndex < recipesData.results.length) {
-    limitedResults.nextPage = {
+  const results = {}
+  if (endIndex < recipes.length - 1) {
+    results.next = {
       page: page + 1,
       limit: limit
     }
   }
-
   if (startIndex > 0) {
-    limitedResults.previousPage = {
+    results.previous = {
       page: page - 1,
       limit: limit
     }
   }
+  results.results = recipes.slice(startIndex, endIndex)
+  results.totalAmountOfRecipes = recipes.length
+  res.send(results)
+})
 
-  recipesData.prevAndNextPages = limitedResults
-  recipesData.results = recipesData.results.slice(startIndex, endIndex) 
-  console.log("Done");
-  
-  res.status(201).send(recipesData)
+router.get("/recipes/:ingredient", function (req, res) {
+  const ingredient = req.params.ingredient
+  getRecipes(ingredient)
+    .then(response => {
+      recipes = response.data.results
+      res.status(200).send(recipes)
+    })
 })
 
 module.exports = router

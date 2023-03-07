@@ -1,62 +1,62 @@
-const renderRecipes = function (recipesData) {
-  $(".recipes-container").empty()
-  const source = $("#recipes-template").html()
-  const template = Handlebars.compile(source)
-  const newHTML = template(recipesData)
+let page = 1
+let limit = 3
+let isDairyFree = false
+let isGlutenFree = false
+let paginatedResults = null
 
-  $(".recipes-container").append(newHTML);
+const alert1stIngredient = function (recipeImg) {
+  const firstIngredient = recipeImg.closest(".recipe-container").find("li")[0].innerHTML
+  alert(firstIngredient)
 }
 
-$("#paginate-btn").on("click", function () {
-  let pageNum = parseInt($("#page-num").val())
-  let limitNum = parseInt($("#limit-num").val())
-  $.ajax({
-      type: "POST",
-      dataType: "json",
-      contentType: "application/json",
-      data: JSON.stringify({
-        pageNum,
-        limitNum
-      }),
-      url: "/recipes/paginate/",
-    })
+const getFilteredResults = function () {
+  $.get(`/recipes?isglutenfree=${isGlutenFree}&isdairyfree=${isDairyFree}&page=${page}&limit=${limit}`)
     .done(function (filteredRecipes) {
-      console.log(filteredRecipes);
-      renderRecipes(filteredRecipes)
-    })
+      paginatedResults = filteredRecipes
+      let numOfPages = Math.ceil(paginatedResults.totalAmountOfRecipes / limit)
 
-})
-
-$("#btn").on("click", function () {
-  let input = $("#ingredients-input").val()
-  let noDairyChecked = $("#nodairy")[0].checked
-  let glutenFreeChecked = $("#gluten-free")[0].checked
-  $.get(`recipes/${input}`, function (recipes) {
-      renderRecipes(recipes)
-    })
-    .then(_ => {
-      if (noDairyChecked || glutenFreeChecked) {
-        $.ajax({
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json",
-            data: JSON.stringify({
-              nodairy: noDairyChecked,
-              nogluten: glutenFreeChecked
-            }),
-            url: "/recipes/",
-          })
-          .done(function (filteredRecipes) {
-            renderRecipes(filteredRecipes)
-          })
+      if (paginatedResults.totalAmountOfRecipes === 0) {
+        renderNoContent()
+      }
+      else if (page < 1) {
+        page = 1
+        alert("This is our very first page")
+      } else if (page > numOfPages) {
+        page = numOfPages
+        alert("You've reached the last page");
+      } else {
+        renderPageNumber(page, numOfPages)
+        renderRecipes(filteredRecipes.results)
       }
     })
+}
 
+const requestRecipes = function (userIngredient) {
+  return $.get(`recipes/${userIngredient}`, function (recipes) {
+    renderRecipes(recipes)
+  })
+}
+
+$(".next-btn").on("click", function () {
+  page++
+  getFilteredResults()
+})
+
+$(".previous-btn").on("click", function () {
+  page--
+  getFilteredResults()
+})
+
+$("#search-btn").on("click", function () {
+  let userIngredient = $("#ingredients-input").val()
+  isDairyFree = $("#isdairyfree")[0].checked
+  isGlutenFree = $("#isglutenfree")[0].checked
+  requestRecipes(userIngredient)
+    .done(() => {
+      getFilteredResults()
+    })
 })
 
 $("body").on("click", ".picture", function () {
-  let relevantInputValue = $(this)
-    .closest(".recipe-container")
-    .find("li")[0].innerHTML
-  alert(relevantInputValue)
+  alert1stIngredient($(this))
 })
