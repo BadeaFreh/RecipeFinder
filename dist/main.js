@@ -17,8 +17,7 @@ const getFilteredResults = function () {
 
       if (paginatedResults.totalAmountOfRecipes === 0) {
         renderNoContent()
-      }
-      else if (page < 1) {
+      } else if (page < 1) {
         page = 1
         alert("This is our very first page")
       } else if (page > numOfPages) {
