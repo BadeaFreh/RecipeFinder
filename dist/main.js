@@ -53,6 +53,7 @@ $("#search-btn").on("click", function () {
   isGlutenFree = $("#isglutenfree")[0].checked
   requestRecipes(userIngredient)
     .done(() => {
+      page = 1
       getFilteredResults()
     })
 })
