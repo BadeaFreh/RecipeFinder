@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const path = require("path");
-const api = require("./routes/recipesApi")
+const api = require("./routes/recipes-api")
 var bodyParser = require('body-parser')
 
 app.use(bodyParser.urlencoded({ extended: false }))
